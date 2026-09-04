@@ -1,0 +1,33 @@
+# ~/.config/ghostty/config
+
+# ── Shell ─────────────────────────────
+
+command = /opt/homebrew/bin/fish
+
+# ── Font ──────────────────────────────
+
+font-family = "JetBrainsMono Nerd Font Mono"
+font-size = 18
+
+
+# 跟随系统深浅色
+
+window-theme = auto
+
+# ── Cursor ────────────────────────────
+
+cursor-style = underline
+
+cursor-style-blink = true
+
+
+# macOS 标题栏更简洁
+
+macos-titlebar-style = transparent
+
+
+# ── Tabs ──────────────────────────────
+
+macos-option-as-alt = true
+
+
