@@ -12,6 +12,7 @@ import os
 import re
 import json
 import sqlite3
+import subprocess
 from datetime import date
 
 HOME       = os.path.expanduser("~/.config/english")
@@ -20,6 +21,7 @@ LOG_FILE   = os.path.join(HOME, "review.jsonl")  # 捕获日志，供复盘
 DICT_DB    = os.path.join(HOME, "ecdict.db")     # ECDICT 离线词典（由 build_dict.py 生成）
 
 MAX_TRANS_LEN = 100  # Large Type 里每个词释义的最大长度，超出截断
+NOTIFICATION_TRIGGER_ID = "word-notification"
 
 
 def get_input() -> str:
@@ -32,7 +34,11 @@ def get_input() -> str:
 def load_known() -> set:
     try:
         with open(KNOWN_FILE, encoding="utf-8") as f:
-            return {ln.strip().lower() for ln in f if ln.strip()}
+            return {
+                word
+                for ln in f
+                if (word := ln.strip().lower()) and not word.startswith("#")
+            }
     except FileNotFoundError:
         return set()
 
@@ -62,11 +68,45 @@ def lookup(conn, word: str):
 
 
 def tidy(trans: str) -> str:
-    """把多条释义压成一行，超长截断，适配 Large Type。"""
-    trans = trans.replace("\\n", "; ").replace("\n", "; ").strip()
+    """保留词典按词性分行的释义，并压缩每行多余空白。"""
+    trans = trans.replace("\\n", "\n").strip()
+    lines = [
+        re.sub(r"\s+", " ", line).strip()
+        for line in trans.splitlines()
+        if line.strip()
+    ]
+    trans = "\n".join(lines)
     if len(trans) > MAX_TRANS_LEN:
         trans = trans[:MAX_TRANS_LEN] + "…"
     return trans
+
+
+def send_notifications(lines: list[str]) -> None:
+    """逐词调用当前 Alfred 工作流的通知触发器。"""
+    bundle_id = os.environ.get("alfred_workflow_bundleid")
+    if not bundle_id:
+        # 直接在终端运行时没有 Alfred 的工作流环境，保留 stdout 供调试。
+        return
+
+    for line in lines:
+        # 通过 argv 传值，避免单词或释义里的引号干扰 AppleScript。
+        subprocess.run(
+            [
+                "osascript",
+                "-e",
+                'on run argv\n'
+                'tell application id "com.runningwithcrayons.Alfred" '
+                'to run trigger (item 2 of argv) in workflow (item 1 of argv) '
+                'with argument (item 3 of argv)\n'
+                'end run',
+                bundle_id,
+                NOTIFICATION_TRIGGER_ID,
+                line,
+            ],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
 
 def main():
@@ -76,12 +116,15 @@ def main():
         return
 
     known = load_known()
+    selected_words = tokens(text)
+    force_lookup = len(selected_words) == 1
 
     # 抓生词（按 lemma 去重）
     seen, unknown = set(), []
-    for w in tokens(text):
+    for w in selected_words:
         base = lemma(w)
-        if base in known or base in seen:
+        # 单独选词表示主动查词，即使它已在 known.txt 中也应展示。
+        if (not force_lookup and base in known) or base in seen:
             continue
         seen.add(base)
         unknown.append((w, base))
@@ -100,7 +143,8 @@ def main():
         head = base if surface.lower() == base else f"{surface}→{base}"
         phon = f" /{phon}/" if phon else ""
         trans = tidy(trans) if trans else "（词典无结果）"
-        lines.append(f"{head}{phon}  {trans}")
+        # 标题和释义分行：词典原本按词性分行的结构得以保留。
+        lines.append(f"{head}{phon}\n{trans}")
     if conn is not None:
         conn.close()
 
@@ -112,7 +156,12 @@ def main():
             ensure_ascii=False,
         ) + "\n")
 
-    print("\n".join(lines) if lines else "全部认识 ✓")
+    if lines:
+        send_notifications(lines)
+        # 保留 stdout，供现有 Large Type 输出继续使用。
+        print("\n".join(lines))
+    else:
+        print("全部认识 ✓")
 
 
 if __name__ == "__main__":
