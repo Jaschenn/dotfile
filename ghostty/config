@@ -4,9 +4,14 @@
 
 command = /opt/homebrew/bin/fish
 
+#----主题------------
+theme = "GitHub Dark"
+
+
 # ── Font ──────────────────────────────
 
 font-family = "JetBrainsMono Nerd Font Mono"
+font-family = "霞鹜文楷等宽 屏幕阅读版"
 font-size = 18
 
 
