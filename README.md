@@ -260,7 +260,3 @@ stow/ghostty/.config/ghostty/config
 - [x] Zellij 软件与配置
 - [x] Alfred workflow（偏好设置与 workflows 由 iCloud 同步）
 
-### 补充说明
-
-- `english/` 包有意把 Alfred 调用的脚本链接到 `~/.config/english/`；词典库和
-  `review.jsonl` 仍是本机生成物，由 `.gitignore` 排除，不进入仓库。
