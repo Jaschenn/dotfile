@@ -1,0 +1,3 @@
+# Ghostty 使用的英文字体。霞鹜文楷等宽屏幕阅读版不在 Homebrew 中，
+# 由 scripts/install-fonts.sh 从官方 release 安装。
+cask "font-jetbrains-mono-nerd-font"

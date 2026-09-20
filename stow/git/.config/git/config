@@ -1,0 +1,15 @@
+# 所有机器共享的 Git 行为。姓名、邮箱和签名等机器相关信息放在 config.local。
+[include]
+    path = ~/.config/git/config.local
+
+[core]
+    excludesFile = ~/.config/git/ignore
+
+[init]
+    defaultBranch = main
+
+[fetch]
+    prune = true
+
+[push]
+    autoSetupRemote = true

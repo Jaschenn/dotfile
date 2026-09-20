@@ -7,5 +7,5 @@ brew "stow"           # 建软链
 brew "mas"            # 装 App Store 应用
 
 # ── 密钥 ──────────────────────────────────────────────────────────
-cask "1password"      # GUI，生物解锁 + SSH agent 都靠它
+# 1Password GUI 是阶段 0 的手动前置：必须先登录才能恢复其他密钥。
 cask "1password-cli"  # op，Makefile 里读密钥用

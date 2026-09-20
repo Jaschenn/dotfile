@@ -1,0 +1,9 @@
+# Shell、终端与交互工具。现有 stow 配置直接依赖这些软件。
+brew "fish"       # Ghostty 固定使用 /opt/homebrew/bin/fish
+brew "fzf"        # .vimrc 引用了 /opt/homebrew/opt/fzf
+brew "starship"   # Fish 启动时直接执行
+brew "tlrc"       # 终端命令速查（tldr）
+brew "yazi"       # Fish 的 y 函数直接调用
+brew "zellij"     # 已有完整配置
+brew "zoxide"     # 目录快速跳转
+cask "ghostty"    # 已有 Ghostty 配置

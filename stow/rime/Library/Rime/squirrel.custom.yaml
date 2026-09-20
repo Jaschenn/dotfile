@@ -1,0 +1,3 @@
+patch:
+  # 当前使用 purity_of_form_custom 主题；只保留本机唯一的个人修改。
+  preset_color_schemes/purity_of_form_custom/font_point: 36

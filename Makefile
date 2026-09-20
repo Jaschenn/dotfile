@@ -17,21 +17,12 @@ SHELL := /bin/bash
 DOTFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 SCRIPTS     := $(DOTFILE_DIR)/scripts
 BREWDIR     := $(DOTFILE_DIR)/brew
-STOW_DIR    := $(DOTFILE_DIR)/stow
-
 TARGET   ?= $(HOME)
-# 只取目录：wildcard 加尾斜杠可以把 stow/ 下的散装文件排除掉
-PACKAGES := $(notdir $(patsubst %/,%,$(wildcard $(STOW_DIR)/*/)))
-
-# --no-folding：逐个文件建链，而不是把整个包目录链过去。
-# 折叠虽然省链接数，但应用往配置目录里写的运行时文件（fish_variables、
-# fish_history、completions/）会直接落进这个仓库，很脏。
-STOW_FLAGS := --no-folding --dir=$(STOW_DIR) --target=$(TARGET)
 
 # ══ 总入口 ════════════════════════════════════════════════════════
 
 .PHONY: bootstrap
-bootstrap: xcode proxy brew core link ## 【新机器从这里开始】完整初始化
+bootstrap: xcode proxy brew core git onepassword fonts shell dev apps rime vim link ## 【新机器从这里开始】完整初始化
 	@echo ""
 	@echo "基础环境就绪。接下来按模块装："
 	@echo "  make doctor    # 先体检一遍"
@@ -51,44 +42,66 @@ brew: ## 安装 Homebrew（BREW_MIRROR=ustc|tuna 可走国内镜像）
 	@$(SCRIPTS)/install-homebrew.sh
 
 .PHONY: core
-core: ## 安装 dotfile 自身依赖的工具（stow / 1password / op / mas）
+core: ## 安装 dotfile 自身依赖的工具（stow / op / mas）
 	@$(SCRIPTS)/brew-bundle.sh core
+
+.PHONY: git
+git: core ## 接管 Git 通用配置，并迁移本机身份到 config.local
+	@$(SCRIPTS)/setup-git.sh
+
+.PHONY: onepassword
+onepassword: core ## 接通 1Password CLI 与 SSH Agent，并安全迁移 SSH 配置
+	@$(SCRIPTS)/setup-1password.sh
+
+# ══ 字体 ══════════════════════════════════════════════════════════
+
+.PHONY: fonts
+fonts: brew ## 安装 Ghostty 所需的 JetBrains Mono 与霞鹜文楷等宽屏幕阅读版
+	@$(SCRIPTS)/brew-bundle.sh fonts
+	@$(SCRIPTS)/install-fonts.sh
+
+# ══ Shell / 开发工具 / 桌面应用 ═══════════════════════════════════
+
+.PHONY: shell
+shell: brew ## 安装 Fish、Ghostty、Starship、Yazi、Zellij 等 Shell 工具
+	@$(SCRIPTS)/brew-bundle.sh shell
+	@$(SCRIPTS)/setup-fish.sh
+
+.PHONY: dev
+dev: brew ## 安装通用命令行开发工具
+	@$(SCRIPTS)/brew-bundle.sh dev
+
+.PHONY: apps
+apps: brew ## 安装常用桌面应用
+	@$(SCRIPTS)/brew-bundle.sh apps
+
+# ══ Rime / 鼠须管 ════════════════════════════════════════════════
+
+.PHONY: rime
+rime: brew core ## 安装 Rime、鼠须管、雾凇拼音与个人配置
+	@$(SCRIPTS)/brew-bundle.sh rime
+	@$(SCRIPTS)/setup-rime.sh
+
+.PHONY: vim
+vim: shell rime ## 安装 rime.vim、独立输入方案并编译 rime-query
+	@$(SCRIPTS)/setup-vim.sh
 
 # ══ 阶段 2：软链 ══════════════════════════════════════════════════
 
 .PHONY: link
-link: ## 用 stow 把 stow/ 下的所有包链到 TARGET（默认 ~）
-ifeq ($(strip $(PACKAGES)),)
-	@echo "  - stow/ 下还没有包，跳过"
-else
-	@command -v stow >/dev/null || { echo "  ✗ stow 没装，先跑 'make core'"; exit 1; }
-	@for p in $(PACKAGES); do \
-	    echo "==> stow $$p"; \
-	    stow $(STOW_FLAGS) --restow "$$p" || exit 1; \
-	done
-	@echo "  ✓ 软链完成"
-endif
+link: ## 比较并备份现有配置，再用 stow 接管（幂等）
+	@TARGET="$(TARGET)" $(SCRIPTS)/stow-packages.sh link
 
 .PHONY: unlink
 unlink: ## 拆掉 stow 建的所有软链（不动仓库里的文件）
-ifeq ($(strip $(PACKAGES)),)
-	@echo "  - stow/ 下还没有包，跳过"
-else
-	@for p in $(PACKAGES); do \
-	    echo "==> unstow $$p"; \
-	    stow $(STOW_FLAGS) --delete "$$p" || exit 1; \
-	done
-endif
+	@TARGET="$(TARGET)" $(SCRIPTS)/stow-packages.sh unlink
 
 .PHONY: relink
 relink: unlink link ## 拆了重链（改过目录结构后用）
 
 .PHONY: link-dry
-link-dry: ## 预演：只打印 stow 会做什么，不落地
-	@for p in $(PACKAGES); do \
-	    echo "==> [dry] $$p"; \
-	    stow $(STOW_FLAGS) --restow --simulate --verbose=2 "$$p"; \
-	done
+link-dry: ## 预演：比较现有配置，只打印备份与接管计划
+	@TARGET="$(TARGET)" $(SCRIPTS)/stow-packages.sh dry-run
 
 # ══ 体检 ══════════════════════════════════════════════════════════
 

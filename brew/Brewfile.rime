@@ -1,0 +1,4 @@
+# Rime 核心与 macOS 前端。
+# librime 提供 rime_deployer 等命令行工具；squirrel-app 安装鼠须管输入法。
+brew "librime"
+cask "squirrel-app"

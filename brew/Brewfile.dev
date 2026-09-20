@@ -1,0 +1,9 @@
+# 通用命令行开发环境。
+brew "gh"
+brew "htop"
+brew "lazygit"
+brew "node"
+brew "pnpm"
+brew "rust"
+brew "uv"
+brew "watchman"

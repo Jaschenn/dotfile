@@ -1,0 +1,8 @@
+# 官方项目：https://github.com/lxgw/LxgwWenKai-Screen
+# 注意：必须是 Mono Screen；不是普通版、非屏幕版或 GB 版。
+LXGW_FONT_VERSION="1.522"
+LXGW_FONT_FILE="LXGWWenKaiMonoScreen.ttf"
+LXGW_FONT_URL="https://github.com/lxgw/LxgwWenKai-Screen/releases/download/v1.522/LXGWWenKaiMonoScreen.ttf"
+LXGW_FONT_SHA256="758bf0e7fceddeae425fa3f5b792aa3e80428856b9f37d21355e0e4295135e9d"
+LXGW_FONT_FAMILY="LXGW WenKai Mono Screen"
+LXGW_FONT_FAMILY_ZH="霞鹜文楷等宽 屏幕阅读版"

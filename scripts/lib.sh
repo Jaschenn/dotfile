@@ -67,7 +67,8 @@ OP_VAULT="${OP_VAULT:-dotfile}"
 op_ref() { echo "op://$OP_VAULT/$1"; }
 
 op_ready() {
-    have op && op account list >/dev/null 2>&1
+    # account list 只能说明配置过账户；whoami 才会验证当前会话确实已解锁。
+    have op && op whoami >/dev/null 2>&1
 }
 
 # 读一个密钥；读不到返回非零，由调用方决定是致命还是降级
@@ -121,6 +122,25 @@ gh_url() {
         echo "$url"
     fi
 }
+
+# 让当前脚本及其所有子进程中的 git 都自动改写 GitHub URL。
+# 这样不仅我们直接执行的 git clone/pull 会走镜像，Plum 等子脚本内部的
+# GitHub clone 也会继承同一规则。使用进程级配置，不污染 ~/.gitconfig。
+configure_github_git_mirror() {
+    [ -n "${GH_MIRROR:-}" ] || return 0
+    [ -z "${DOTFILE_GIT_MIRROR_CONFIGURED:-}" ] || return 0
+
+    local index="${GIT_CONFIG_COUNT:-0}"
+    local key="GIT_CONFIG_KEY_$index"
+    local value="GIT_CONFIG_VALUE_$index"
+    printf -v "$key" '%s' "url.${GH_MIRROR%/}/https://github.com/.insteadOf"
+    printf -v "$value" '%s' "https://github.com/"
+    export "$key" "$value"
+    export GIT_CONFIG_COUNT=$((index + 1))
+    export DOTFILE_GIT_MIRROR_CONFIGURED=1
+}
+
+configure_github_git_mirror
 
 download() {
     local url="$1" out="$2"

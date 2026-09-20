@@ -9,7 +9,7 @@ APP="/Applications/FlClash.app"
 REPO="chen08209/FlClash"
 
 if [ -d "$APP" ] && [ -z "${FORCE:-}" ]; then
-    ok "FlClash 已安装（$APP）"
+    ok "FlClash 已安装（${APP}）"
 else
     ARCH="$(arch_name)"
 
@@ -18,13 +18,13 @@ else
         TAG="v${FLCLASH_VERSION#v}"
     else
         info "查询 FlClash 最新版本"
-        TAG="$(curl -fsSL --max-time 20 "https://api.github.com/repos/$REPO/releases/latest" \
+        TAG="$(curl -fsSL --max-time 20 "$(gh_url "https://api.github.com/repos/$REPO/releases/latest")" \
                | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -1)" \
             || die "拿不到版本号。可以指定 FLCLASH_VERSION=0.8.98 绕过，或设 GH_MIRROR。"
         [ -n "$TAG" ] || die "版本号解析为空，GitHub API 可能被墙。试试 FLCLASH_VERSION=0.8.98"
     fi
     VER="${TAG#v}"
-    info "目标版本 $TAG（$ARCH）"
+    info "目标版本 ${TAG}（${ARCH}）"
 
     DMG_NAME="FlClash-$VER-macos-$ARCH.dmg"
     URL="$(gh_url "https://github.com/$REPO/releases/download/$TAG/$DMG_NAME")"
@@ -100,7 +100,7 @@ else
 fi
 
 info "验证代理"
-proxy_is_up || die "127.0.0.1:$PROXY_PORT 仍然没在监听。确认 FlClash 的混合端口是 $PROXY_PORT（不是的话跑 make proxy PROXY_PORT=xxxx）"
+proxy_is_up || die "127.0.0.1:$PROXY_PORT 仍然没在监听。确认 FlClash 的混合端口是 ${PROXY_PORT}（不是的话跑 make proxy PROXY_PORT=xxxx）"
 use_proxy_if_available
 proxy_works || die "代理端口通了但出不去，换个节点再跑 'make proxy'"
 ok "代理就绪，可以继续 'make brew'"

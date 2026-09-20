@@ -1,4 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["simplemma>=1.1,<2"]
+# ///
 """
 Alfred 英语阅读助手 —— 实时抓生词 + 翻译
 
@@ -14,6 +18,8 @@ import json
 import sqlite3
 import subprocess
 from datetime import date
+
+import simplemma
 
 HOME       = os.path.expanduser("~/.config/english")
 KNOWN_FILE = os.path.join(HOME, "known.txt")     # 已认识的词，一行一个（原形），手工维护
@@ -49,12 +55,8 @@ def tokens(text: str):
 
 
 def lemma(word: str) -> str:
-    """词形还原：went->go, going->go。simplemma 没装就退化为小写原样。"""
-    try:
-        import simplemma
-        return simplemma.lemmatize(word.lower(), lang="en")
-    except Exception:
-        return word.lower()
+    """词形还原：went->go, going->go。依赖由 uv 根据脚本元数据提供。"""
+    return simplemma.lemmatize(word.lower(), lang="en")
 
 
 def lookup(conn, word: str):

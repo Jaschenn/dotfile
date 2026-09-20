@@ -1,0 +1,6 @@
+# 每台个人电脑都需要的桌面应用。
+cask "alfred"
+cask "google-chrome"
+cask "obsidian"
+cask "omnifocus"
+cask "zotero"
