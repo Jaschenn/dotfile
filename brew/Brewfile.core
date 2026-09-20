@@ -1,0 +1,11 @@
+# 跑通这套 dotfile 本身所必需的工具。
+# 具体软件（ghostty / rime / zellij / alfred ...）各自放在 Brewfile.<模块> 里，
+# 由对应的 make 目标安装，不堆在这里。
+
+# ── dotfile 基础设施 ──────────────────────────────────────────────
+brew "stow"           # 建软链
+brew "mas"            # 装 App Store 应用
+
+# ── 密钥 ──────────────────────────────────────────────────────────
+cask "1password"      # GUI，生物解锁 + SSH agent 都靠它
+cask "1password-cli"  # op，Makefile 里读密钥用

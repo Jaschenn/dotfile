@@ -1,0 +1,16 @@
+.DS_Store
+*.bak
+
+# fish 的 universal variables：由 fish 自己在运行时重写（rename 会打断软链），
+# 而且历来会混进 API key 和机器相关的路径。不进仓库，需要的变量写进 conf.d/。
+fish_variables
+
+# op inject 生成的、含密钥的文件 —— 永远不进仓库
+*.secret
+secrets.fish
+**/conf.d/secrets.fish
+
+# 生成物与个人数据（词典库、捕获日志），不是配置
+english/ecdict.csv
+english/ecdict.db
+english/review.jsonl
