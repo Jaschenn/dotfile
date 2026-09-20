@@ -67,8 +67,9 @@ OP_VAULT="${OP_VAULT:-dotfile}"
 op_ref() { echo "op://$OP_VAULT/$1"; }
 
 op_ready() {
-    # account list 只能说明配置过账户；whoami 才会验证当前会话确实已解锁。
-    have op && op whoami >/dev/null 2>&1
+    # 桌面 App 集成模式下，whoami 可能报告「account is not signed in」，
+    # 但 vault/read 等实际命令仍能经由 App 授权。用真实 vault 操作判断可用性。
+    have op && op vault list --format=json >/dev/null 2>&1
 }
 
 # 读一个密钥；读不到返回非零，由调用方决定是致命还是降级
@@ -109,6 +110,20 @@ use_proxy_if_available() {
 # 走代理能不能真的出去
 proxy_works() {
     curl -fsS --max-time 8 -o /dev/null https://github.com 2>/dev/null
+}
+
+# macOS 不同版本会把第三方输入法记录在 Enabled 或 Selected 列表中。
+# 两处都检查，避免已经启用并正在使用的输入法被误报为缺失。
+macos_input_source_enabled() {
+    local bundle_id="$1" sources
+    sources="$({
+        defaults read com.apple.HIToolbox AppleEnabledInputSources 2>/dev/null || true
+        defaults read com.apple.HIToolbox AppleSelectedInputSources 2>/dev/null || true
+    })"
+    case "$sources" in
+        *"$bundle_id"*) return 0 ;;
+        *) return 1 ;;
+    esac
 }
 
 # ── 下载 ──────────────────────────────────────────────────────────

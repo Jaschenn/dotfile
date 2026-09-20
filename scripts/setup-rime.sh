@@ -81,8 +81,7 @@ else
     warn "自动重新部署失败；请从鼠须管菜单手动选择「重新部署」"
 fi
 
-if defaults read com.apple.HIToolbox AppleEnabledInputSources 2>/dev/null \
-   | grep 'im.rime.inputmethod.Squirrel' >/dev/null; then
+if macos_input_source_enabled 'im.rime.inputmethod.Squirrel'; then
     ok "鼠须管已加入系统输入法"
 else
     warn "还需手动操作：系统设置 → 键盘 → 输入法 → 添加鼠须管"

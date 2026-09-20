@@ -73,7 +73,7 @@ info "1Password"
 check_app "1Password" "先完成 README 的阶段 0"
 if have op; then
     if op_ready; then
-        ok "op 已登录"
+        ok "op CLI 可访问 1Password"
         if op vault get "$OP_VAULT" >/dev/null 2>&1; then
             ok "vault「${OP_VAULT}」可访问"
         else
@@ -89,10 +89,15 @@ fi
 OP_AGENT="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 if [ -S "$OP_AGENT" ]; then
     ok "1Password SSH Agent socket"
-    if SSH_AUTH_SOCK="$OP_AGENT" ssh-add -l >/dev/null 2>&1; then
+    AGENT_STATUS=0
+    AGENT_OUTPUT="$(SSH_AUTH_SOCK="$OP_AGENT" ssh-add -l 2>&1)" || AGENT_STATUS=$?
+    if [ "$AGENT_STATUS" -eq 0 ]; then
         ok "SSH Agent 有可用密钥"
-    else
+    elif [ "$AGENT_OUTPUT" = "The agent has no identities." ]; then
         warn "SSH Agent 已开启，但没有可用 SSH Key"
+        WARN=$((WARN + 1))
+    else
+        warn "SSH Agent 查询失败：${AGENT_OUTPUT:-未知错误}"
         WARN=$((WARN + 1))
     fi
 else
@@ -201,8 +206,7 @@ else
     WARN=$((WARN + 1))
 fi
 
-if defaults read com.apple.HIToolbox AppleEnabledInputSources 2>/dev/null \
-   | grep 'im.rime.inputmethod.Squirrel' >/dev/null; then
+if macos_input_source_enabled 'im.rime.inputmethod.Squirrel'; then
     ok "鼠须管已加入系统输入法"
 else
     warn "鼠须管尚未加入系统输入法"
