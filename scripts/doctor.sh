@@ -69,7 +69,7 @@ fi
 
 # ── 软链 ──────────────────────────────────────────────────────────
 info "软链（stow）"
-PKGS="$(ls -1 "$ROOT/stow" 2>/dev/null || true)"
+PKGS="$(cd "$ROOT/stow" 2>/dev/null && find . -maxdepth 1 -mindepth 1 -type d | sed 's|^\./||' | sort || true)"
 if [ -z "$PKGS" ]; then
     skip "stow/ 下还没有包"
 else

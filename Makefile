@@ -20,7 +20,8 @@ BREWDIR     := $(DOTFILE_DIR)/brew
 STOW_DIR    := $(DOTFILE_DIR)/stow
 
 TARGET   ?= $(HOME)
-PACKAGES := $(notdir $(wildcard $(STOW_DIR)/*))
+# 只取目录：wildcard 加尾斜杠可以把 stow/ 下的散装文件排除掉
+PACKAGES := $(notdir $(patsubst %/,%,$(wildcard $(STOW_DIR)/*/)))
 
 # --no-folding：逐个文件建链，而不是把整个包目录链过去。
 # 折叠虽然省链接数，但应用往配置目录里写的运行时文件（fish_variables、

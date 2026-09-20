@@ -121,8 +121,17 @@ make link-dry     预演，只打印不落地
 │   ├── proxy-check.sh
 │   └── doctor.sh
 └── stow/                 stow 的包目录，一个子目录一个包
-    └── <包名>/<相对 $HOME 的完整路径>
+    ├── english/.config/english/       capture.py / known.txt / build_dict.py
+    ├── fish/.config/fish/             config.fish / conf.d/ / functions/
+    ├── ghostty/.config/ghostty/config
+    ├── git/.config/git/ignore
+    ├── starship/.config/starship.toml
+    ├── vim/.vimrc
+    └── zellij/.config/zellij/config.kdl
 ```
+
+`stow/` 下**只放会被链到 `$HOME` 的文件**。stow 不看 `.gitignore`，放进去的东西
+一律会建链，所以备份文件、生成物、密钥都不能放这里。
 
 ### stow 包怎么组织
 
@@ -172,11 +181,22 @@ stow/ghostty/.config/ghostty/config
 - [x] Makefile 编排层 + bootstrap 入口
 - [x] Xcode CLT / FlClash / Homebrew / core 工具
 - [x] stow 建链 + doctor 体检
-- [ ] 1Password 打通（密钥注入、SSH Agent）
+- [x] 现有配置迁入 stow 包（fish / ghostty / git / starship / vim / zellij / english）
+- [ ] **1Password 打通**（密钥注入、SSH Agent）← 下一步
 - [ ] Rime 输入法
-- [ ] Ghostty（含字体）
-- [ ] Vim
+- [ ] Ghostty：字体安装（`font-jetbrains-mono-nerd-font` 有 cask；配置里用到的
+      「霞鹜文楷等宽 屏幕阅读版」需要确认是哪个 cask，可能得手动下）
+- [ ] Vim：`vim-plug` 安装 + `PlugInstall`
 - [ ] Zellij
 - [ ] Alfred（含 english 生词捕获 workflow）
-- [ ] fish / starship / git
 - [ ] macOS 系统默认项
+
+### 迁入 stow 时留下的待办
+
+- `fish/conf.d/abbr.fish` 里硬编码了 `/Users/jaschen/...`，是失效路径，
+  等 fish 模块时参数化掉
+- `english/` 三个文件现在整体作为一个包链过去。`build_dict.py` 其实是构建脚本
+  而不是配置，词典库和 `review.jsonl` 是生成物与个人数据 —— 等 Alfred 模块时
+  再拆分（代码留仓库、数据去 `~/.local/share/`）
+- `~/.config/git/` 目前只有 `ignore`，没有 `gitconfig`。用户名/邮箱按机器
+  （work / personal）不同，需要一个 include 的本地覆盖文件

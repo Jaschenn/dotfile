@@ -1,16 +1,21 @@
 .DS_Store
+
+# 备份文件不要进仓库，更不要进 stow 包 —— stow 不看 .gitignore，
+# 会把它们一并链到 $HOME 去。
 *.bak
 
-# fish 的 universal variables：由 fish 自己在运行时重写（rename 会打断软链），
-# 而且历来会混进 API key 和机器相关的路径。不进仓库，需要的变量写进 conf.d/。
+# fish 的 universal variables：由 fish 自己在运行时重写（rename 原子替换，
+# 会直接打断 stow 建的软链），而且历来会混进 API key 和机器相关的绝对路径。
+# 需要持久化的变量写进 conf.d/*.fish，密钥走 1Password。
 fish_variables
 
 # op inject 生成的、含密钥的文件 —— 永远不进仓库
 *.secret
 secrets.fish
-**/conf.d/secrets.fish
 
-# 生成物与个人数据（词典库、捕获日志），不是配置
-english/ecdict.csv
-english/ecdict.db
-english/review.jsonl
+# 生成物与个人数据（词典库、捕获日志），不是配置。
+# stow 用的是 --no-folding，~/.config/english 是真实目录，这些文件会落在
+# 那里而不是仓库里；这几行只是防手滑。
+ecdict.csv
+ecdict.db
+review.jsonl
