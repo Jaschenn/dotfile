@@ -69,14 +69,18 @@ op_ref() { echo "op://$OP_VAULT/$1"; }
 op_ready() {
     # 桌面 App 集成模式下，whoami 可能报告「account is not signed in」，
     # 但 vault/read 等实际命令仍能经由 App 授权。用真实 vault 操作判断可用性。
-    have op && op vault list --format=json >/dev/null 2>&1
+    #
+    # </dev/null 至关重要：op 在一个账户都没配时不会安静失败，而是弹出
+    # 「Do you want to add an account manually now? [Y/n]」并从 stdin 读输入。
+    # 不隔断 stdin 的话，这个探测会卡死整个 make bootstrap。
+    have op && op vault list --format=json </dev/null >/dev/null 2>&1
 }
 
 # 读一个密钥；读不到返回非零，由调用方决定是致命还是降级
 op_get() {
     local ref; ref="$(op_ref "$1")"
     op_ready || return 1
-    op read "$ref" 2>/dev/null
+    op read "$ref" </dev/null 2>/dev/null
 }
 
 # ── 代理 ──────────────────────────────────────────────────────────
