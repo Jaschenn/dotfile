@@ -34,7 +34,7 @@ xcode: ## 安装 Xcode Command Line Tools（git/make/clang 的来源）
 	@$(SCRIPTS)/install-xcode-clt.sh
 
 .PHONY: proxy
-proxy: ## 安装并配置 FlClash —— 必须先于一切网络操作
+proxy: ## 配置代理（PROXY_MODE=none|install|full，交互时可选）
 	@$(SCRIPTS)/install-flclash.sh
 
 .PHONY: brew
@@ -124,6 +124,7 @@ help:
 	  | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "常用变量："
+	@echo "  PROXY_MODE=none|install|full  代理：不开 / 仅装 / 装+开代理（默认交互选，回车=full）"
 	@echo "  BREW_MIRROR=ustc|tuna   brew 走国内镜像"
 	@echo "  GH_MIRROR=https://...   GitHub 下载走加速前缀"
 	@echo "  PROXY_PORT=7890         本地代理端口"

@@ -8,6 +8,55 @@
 APP="/Applications/FlClash.app"
 REPO="chen08209/FlClash"
 
+# ── 代理模式 ──────────────────────────────────────────────────────
+#
+# 三选一，决定这一步做到哪：
+#   none    不使用代理：跳过 FlClash 安装与代理配置，后续下载走直连
+#   install 仅安装 FlClash：装好即返回，不等你导入订阅、不校验代理
+#   full    安装 + 开代理：装好后等你导入订阅、开系统代理，并校验能出网（默认）
+#
+# 优先级：环境变量 PROXY_MODE > 交互式菜单（有终端时）> full（无终端时的默认）
+resolve_proxy_mode() {
+    case "${PROXY_MODE:-}" in
+        none|install|full) echo "$PROXY_MODE"; return ;;
+        '') ;;
+        *)  die "PROXY_MODE 只能是 none / install / full，收到：$PROXY_MODE" ;;
+    esac
+
+    if [ ! -t 0 ]; then
+        echo full   # 非交互（如 curl | sh 无 tty）：保持原行为
+        return
+    fi
+
+    # 交互式菜单
+    printf '\n%s请选择代理设置方式：%s\n' "$C_BLUE" "$C_RESET" >&2
+    printf '  1) 不开代理       —— 跳过 FlClash，后续走直连（可配 GH_MIRROR/BREW_MIRROR）\n' >&2
+    printf '  2) 仅安装 FlClash —— 装好就好，稍后自己导入订阅、开代理\n' >&2
+    printf '  3) 安装 + 开代理  —— 装好并引导你导入订阅、校验出网（默认）\n' >&2
+    printf '选择 [1/2/3，回车=3]：' >&2
+    read -r choice
+    case "$choice" in
+        1) echo none ;;
+        2) echo install ;;
+        3|'') echo full ;;
+        *) warn "无法识别「$choice」，按默认 3 处理" >&2; echo full ;;
+    esac
+}
+
+MODE="$(resolve_proxy_mode)"
+
+if [ "$MODE" = none ]; then
+    info "已选择「不开代理」（PROXY_MODE=none），跳过 FlClash 安装与代理配置"
+    if proxy_is_up; then
+        ok "顺带一提：本地 $PROXY_PORT 已有代理在跑，后续步骤会自动用上"
+    else
+        warn "后续 brew / GitHub 下载将走直连。遇到网络问题可："
+        warn "  · 重跑 'make proxy' 选择安装代理"
+        warn "  · 或设 GH_MIRROR=https://ghfast.top、BREW_MIRROR=ustc 走国内镜像"
+    fi
+    exit 0
+fi
+
 if [ -d "$APP" ] && [ -z "${FORCE:-}" ]; then
     ok "FlClash 已安装（${APP}）"
 else
@@ -85,6 +134,16 @@ else
     warn "（首次装机这是正常的：op 要等 make core 之后才有）"
 fi
 
+# ── 仅安装模式：装好就收工，不阻塞、不校验 ────────────────────────
+if [ "$MODE" = install ]; then
+    if [ "$COPIED" = 1 ]; then
+        info "订阅链接已在剪贴板，随时可在 FlClash 里「配置 → 添加配置」粘贴导入"
+    fi
+    ok "FlClash 已就绪（仅安装模式）。需要开代理时，导入订阅并打开系统代理，或重跑 'make proxy' 选模式 3"
+    exit 0
+fi
+
+# ── 完整模式：引导导入订阅、开代理，并校验出网 ────────────────────
 open -a FlClash 2>/dev/null || warn "打不开 FlClash，手动从启动台打开"
 
 if [ "$COPIED" = 1 ]; then
@@ -100,7 +159,7 @@ else
 fi
 
 info "验证代理"
-proxy_is_up || die "127.0.0.1:$PROXY_PORT 仍然没在监听。确认 FlClash 的混合端口是 ${PROXY_PORT}（不是的话跑 make proxy PROXY_PORT=xxxx）"
+proxy_is_up || die "127.0.0.1:$PROXY_PORT 仍然没在监听。确认 FlClash 的混合端口是 ${PROXY_PORT}（不是的话跑 make proxy PROXY_PORT=xxxx）。只想装不开代理可跑 'make proxy PROXY_MODE=install'"
 use_proxy_if_available
 proxy_works || die "代理端口通了但出不去，换个节点再跑 'make proxy'"
 ok "代理就绪，可以继续 'make brew'"
