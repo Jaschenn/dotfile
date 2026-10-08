@@ -12,6 +12,8 @@
 `idle_gap` 秒 / 超过 `max_chars` 字）写入 Obsidian 库（iCloud）的 `OS/(1)领域/(A)Life OS/RimeInputLog/YYYY-MM-DD.md`。
 由 `rime_ice.custom.yaml` 挂到 processors 最前面；配置项在脚本顶部的 `CONFIG`。
 它只旁听不拦截按键，ASCII 模式下直接敲的英文也会记录（`log_ascii`）。
+退格会同步删掉记录里的字，删过句末会把刚写入的那句撤回；回车、方向键、
+切换应用后句子就定稿。
 
 `build/`、`*.userdb/`、`user.yaml` 和 `installation.yaml` 都是生成物、个人词频
 或机器状态，继续留在本机，不进入仓库，也不会被脚本删除。
