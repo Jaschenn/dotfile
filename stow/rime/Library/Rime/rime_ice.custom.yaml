@@ -1,3 +1,39 @@
 patch:
   # 输入记录：旁听上屏文字，按句写入 Obsidian 库的 RimeInputLog（见 lua/input_logger.lua）。
   "engine/processors/@before 0": lua_processor@*input_logger
+
+  # 语法模型（八股文 octagram + 万象 LTS 模型）：让长句整句选字更通顺。
+  # 参数照抄雾凇官方配方 others/recipes/grammar.recipe.yaml；
+  # 模型文件 wanxiang-lts-zh-hans.gram 约 380MB，由 scripts/setup-rime.sh 下载，不进仓库。
+  grammar:
+    language: wanxiang-lts-zh-hans
+    collocation_max_length: 6
+    collocation_min_length: 3
+    collocation_penalty: -14
+    non_collocation_penalty: -6
+    weak_collocation_penalty: -100
+    rear_penalty: -20
+  translator/contextual_suggestions: false
+  translator/max_homophones: 8
+
+  # 拼写纠错与模糊音：追加到雾凇 speller/algebra 末尾，不整段覆盖，雾凇更新后照样生效。
+  # 雾凇默认只开了 zh/ch/sh、ai、ei、ie、ao、ou 等纠错，下面补上它注释掉的几组。
+  # 副作用（雾凇原注释）：对全拼简拼混输有影响，如「x'ai 喜爱」可能被纠成「xia 下」。
+  speller/algebra/+:
+    ### 自动纠错：两个字母打反
+    - derive/([qjx])ia$/$1ai/                    # qai → qia
+    - derive/([wrtypsdfghklzcbnm])an$/$1na/      # dna → dan
+    - derive/([wrpsdfghklzcbnm])en$/$1ne/        # rne → ren
+    - derive/([qypjlxbnm])in$/$1ni/              # qni → qin
+    - derive/([qrtysdghjklzxc])un$/$1nu/         # qnu → qun
+    - derive/([qtpdjlxbnm])ian$/$1ain/           # xain → xian
+
+    ### 模糊音：前后鼻音、平翘舌（双向）。不需要的那组整组注释掉即可。
+    - derive/in$/ing/
+    - derive/ing$/in/
+    - derive/en$/eng/
+    - derive/eng$/en/
+    - derive/an$/ang/
+    - derive/ang$/an/
+    - derive/^([zcs])h/$1/
+    - derive/^([zcs])([^h])/$1h$2/

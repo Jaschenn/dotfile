@@ -75,6 +75,18 @@ info "安装/更新雾凇拼音"
 plum_dir="$PLUM_DIR" rime_dir="$RIME_DIR" \
     bash "$PLUM_DIR/rime-install" iDvel/rime-ice
 
+# ── 语法模型（rime_ice.custom.yaml 里的 grammar/language 指向它）───
+# 约 380MB，只在缺失时下载；想更新到新版就删掉文件再跑 'make rime'。
+GRAMMAR_FILE="$RIME_DIR/wanxiang-lts-zh-hans.gram"
+GRAMMAR_URL="https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/wanxiang-lts-zh-hans.gram"
+if [ -s "$GRAMMAR_FILE" ]; then
+    skip "语法模型已存在"
+else
+    download "$(gh_url "$GRAMMAR_URL")" "$GRAMMAR_FILE.part"
+    mv "$GRAMMAR_FILE.part" "$GRAMMAR_FILE"
+    ok "语法模型已下载"
+fi
+
 if "$SQUIRREL_BIN" --reload >/dev/null 2>&1; then
     ok "鼠须管重新部署完成"
 else

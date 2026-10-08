@@ -199,6 +199,13 @@ else
     FAIL=$((FAIL + 1))
 fi
 
+if [ -s "$RIME_TARGET/wanxiang-lts-zh-hans.gram" ]; then
+    ok "语法模型"
+else
+    warn "语法模型缺失 —— make rime"
+    FAIL=$((FAIL + 1))
+fi
+
 if [ -f "$RIME_TARGET/build/rime_ice.schema.yaml" ]; then
     ok "雾凇拼音已部署"
 else
