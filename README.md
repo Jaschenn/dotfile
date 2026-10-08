@@ -190,7 +190,7 @@ git config --file ~/.config/git/config.local user.email "你的邮箱"
     ├── fish/.config/fish/             config.fish / conf.d/ / functions/
     ├── ghostty/.config/ghostty/config
     ├── git/.config/git/             config / ignore
-    ├── rime/Library/Rime/squirrel.custom.yaml
+    ├── rime/Library/Rime/             squirrel/rime_ice.custom.yaml / lua/input_logger.lua
     ├── ssh/.ssh/config
     ├── ssh/.config/fish/conf.d/1password-ssh-agent.fish
     ├── starship/.config/starship.toml

@@ -55,11 +55,11 @@ if [ "$CUSTOM_ACTION" = "replace" ]; then
     backup_file "$CUSTOM_TARGET" "$BACKUP_DIR/squirrel.custom.yaml"
     rm -f "$CUSTOM_TARGET"
 fi
-if [ "$CUSTOM_ACTION" != "none" ]; then
-    mkdir -p "$RIME_DIR"
-    stow --no-folding --dir="$ROOT/stow" --target="$HOME" --restow rime
-    ok "字号配置已链接到仓库"
-fi
+# 每次都 restow：新增到仓库的文件（如 lua/input_logger.lua）也会被链接；
+# 目标处已有同名普通文件时 stow 会报冲突而不是覆盖。
+mkdir -p "$RIME_DIR"
+stow --no-folding --dir="$ROOT/stow" --target="$HOME" --restow rime
+ok "Rime 个人配置已链接到仓库"
 
 # ── 官方方式安装/更新雾凇拼音 ────────────────────────────────────
 if [ -d "$PLUM_DIR/.git" ]; then

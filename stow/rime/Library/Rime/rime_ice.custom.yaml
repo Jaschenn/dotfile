@@ -1,0 +1,3 @@
+patch:
+  # 输入记录：旁听上屏文字，按句写入 Obsidian 库的 RimeInputLog（见 lua/input_logger.lua）。
+  "engine/processors/@before 0": lua_processor@*input_logger
